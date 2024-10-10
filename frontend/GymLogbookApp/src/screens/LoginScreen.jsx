@@ -10,6 +10,8 @@ const LoginScreen = ({navigation}) => {
     try {
       const response = await UserService.login(email,password);
       console.log(response.data)
+      navigation.navigate('Home')
+
 
 
       // Handle successful login (e.g., store token, navigate to main screen)

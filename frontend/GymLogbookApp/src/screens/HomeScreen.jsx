@@ -1,10 +1,12 @@
-import { Text } from "react-native";
+import { View, Text } from "react-native";
 
 const HomeScreen = () => {
     return (
-        <Text>
+        <View className="flex-1 bg-blue-950">
+            <Text>
             welcome brev
         </Text>
+        </View>
     )
 }
 

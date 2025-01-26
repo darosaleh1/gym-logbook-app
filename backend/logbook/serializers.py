@@ -1,5 +1,27 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from .models import Exercise
+
+
+class ExerciseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Exercise
+        fields = ('id','name','description','is_custom','created_by','rest_period')
+        read_only_fields = ['created_by']
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        return super().create(validated_data)
+    
+    def validate(self,data):
+
+        if Exercise.objects.filter(
+            created_by=self.context['request'].user,
+            name__iexact=data['name']
+        ).exists():
+            raise serializers.ValidationError({"name": "You already have an exercise with this name"})
+        return data
+    
 
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.CharField(required=True)

@@ -15,7 +15,7 @@ class ExerciseListView(APIView):
         return Exercise.objects.filter(
             models.Q(created_by=user) |
             models.Q(is_custom=False)
-        ).distinct().order_by('name')
+        ).distinct().order_by('is_custom')
     
     def get(self,request):
         exercises = self.get_queryset()

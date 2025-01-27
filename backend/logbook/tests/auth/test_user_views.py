@@ -13,7 +13,7 @@ class RegisterViewTest(APITestCase):
                         'password': 'testpass123',
                         'confirm_password': 'testpass123'
                 }
-                response = self.client.post('/api/register/', data)
+                response = self.client.post('/api/auth/register/', data)
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED)
                 self.assertTrue(User.objects.filter(email='test@example.com').exists())
                 
@@ -24,7 +24,7 @@ class RegisterViewTest(APITestCase):
                         'password': 'testpass123',
                         'confirm_password': 'testpass123'
                 }
-                response = self.client.post('/api/register/', data)
+                response = self.client.post('/api/auth/register/', data)
                 self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
                 self.assertFalse(User.objects.filter(email="test@example.com").exists())
 
@@ -42,7 +42,7 @@ class EmailTokenObtainPairViewTest(APITestCase):
                         'email': 'test@example.com',
                         'password': 'testpass123'
                 }
-                response = self.client.post('/api/token/', data)
+                response = self.client.post('/api/auth/token/', data)
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
                 self.assertIn('access', response.data)
                 self.assertIn('refresh', response.data)
@@ -52,7 +52,7 @@ class EmailTokenObtainPairViewTest(APITestCase):
                 'email': 'test@example.com',
                 'password': 'wrongpass'
             }
-            response = self.client.post('/api/token/', data)
+            response = self.client.post('/api/auth/token/', data)
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 

@@ -1,6 +1,41 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Exercise
+from .models import Exercise, Workout, WorkoutExercise
+
+
+
+class WorkoutExerciseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkoutExercise
+        fields = ['id', 'workout', 'exercise','order', 'sets', 'reps']
+        read_only_fields = ['workout']
+
+class WorkoutSerializer(serializers.ModelSerializer):
+    exercises = WorkoutExerciseSerializer(source='workoutexercise_set', many=True)
+
+    class Meta:
+        model = Workout
+        fields = ['id','name','description','exercises']
+        read_only_fields = ['created_by']
+    
+    def create(self, validated_data):
+        exercises_data = validated_data.pop('workoutexercise_set')
+        workout = Workout.objects.create(
+            created_by=self.context['request'].user,
+            **validated_data
+        )
+        for exercise_data in exercises_data:
+            WorkoutExercise.objects.create(workout=workout, **exercise_data)
+        return workout
+    
+    def update(self,instance,validated_data):
+        exercises_data = validated_data.pop('workoutexercise_set')
+        instance.workoutexercise_set.all().delete()
+        for exercise_data in exercises_data:
+            WorkoutExercise.objects.create(workout=instance, **exercise_data)
+
+        return super().update(instance,validated_data)
+    
 
 
 class ExerciseSerializer(serializers.ModelSerializer):

@@ -1,14 +1,58 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Exercise, Workout, WorkoutExercise
+from .models import Exercise, Workout, WorkoutExercise, WorkoutPlanDay, WorkoutPlan
 
+
+from rest_framework import serializers
+from .models import WorkoutLog, ExerciseLog
+
+class ExerciseLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExerciseLog
+        fields = ['id', 'exercise', 'set_number', 'weight', 'reps', 'completed_at']
+        read_only_fields = ['workout_log', 'completed_at']
+
+class WorkoutLogSerializer(serializers.ModelSerializer):
+    exercise_logs = ExerciseLogSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = WorkoutLog
+        fields = ['id', 'workout', 'workout_plan', 'date', 'completed', 'exercise_logs']
+        read_only_fields = ['user']
+
+class WorkoutPlanDaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkoutPlanDay
+        fields = ['id', 'day_of_week', 'workout', 'is_rest_day']
+        read_only_fields = ['workout_plan']
+
+class WorkoutPlanSerializer(serializers.ModelSerializer):
+    schedule = WorkoutPlanDaySerializer(source='workoutplanday_set', many=True, read_only=True)
+
+    class Meta:
+        model = WorkoutPlan
+        fields = ['id', 'name', 'start_date', 'weeks_duration', 'is_active', 'schedule']
+        read_only_fields = ['created_by']
+    
+    def create(self, validated_data):
+        workout_plan = WorkoutPlan.objects.create(
+            created_by = self.context['request'].user,
+            **validated_data
+        )
+
+        for day in range(1,8):
+            WorkoutPlanDay.objects.create(
+                workout_plan=workout_plan,
+                day_of_week=day,
+                is_rest_day=True
+            )
+        return workout_plan
 
 
 class WorkoutExerciseSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkoutExercise
-        fields = ['id', 'workout', 'exercise','order', 'sets', 'reps']
-        read_only_fields = ['workout']
+        fields = ['id','exercise', 'order', 'sets', 'reps']
 
 class WorkoutSerializer(serializers.ModelSerializer):
     exercises = WorkoutExerciseSerializer(source='workoutexercise_set', many=True)
